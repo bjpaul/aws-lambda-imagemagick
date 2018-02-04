@@ -10,10 +10,10 @@ const s3 = new aws.S3({ apiVersion: 'latest' });
 
 
 const convert = (req, callback) => {
-  const fileNamePath = "image/sample/sample.png"
-  const source_s3_bucket = "dev-state-ranking-system"
-  // const fileNamePath = decodeURIComponent(req.Records[0].s3.object.key.replace(/\+/g, ' '));
-  // const source_s3_bucket = req.Records[0].s3.bucket.name;
+  // const fileNamePath = "image/sample/sample.png"
+  // const source_s3_bucket = "dev-state-ranking-system"
+  const fileNamePath = decodeURIComponent(req.Records[0].s3.object.key.replace(/\+/g, ' '));
+  const source_s3_bucket = req.Records[0].s3.bucket.name;
   const fileName = path.basename(fileNamePath);
 
   let outputFileName = 'converted-'+fileName
@@ -107,8 +107,8 @@ exports.handler = (event, context, callback) => {
     convert(req, callback);
 };
 
-const callback = function(data)  {
-    console.log(data);
-};
-
-convert(null, callback);
+// const callback = function(data)  {
+//     console.log(data);
+// };
+//
+// convert(null, callback);
