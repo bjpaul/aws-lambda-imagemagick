@@ -6,12 +6,14 @@ const aws = require('aws-sdk');
 const im = require('imagemagick');
 const fs = require('fs');
 const path = require('path');
-const s3 = new aws.S3({ apiVersion: '2006-03-01' });
+const s3 = new aws.S3({ apiVersion: 'latest' });
 
 
 const convert = (req, callback) => {
-  const fileNamePath = decodeURIComponent(req.Records[0].s3.object.key.replace(/\+/g, ' '));
-  const source_s3_bucket = req.Records[0].s3.bucket.name;
+  const fileNamePath = "image/sample/sample.png"
+  const source_s3_bucket = "dev-state-ranking-system"
+  // const fileNamePath = decodeURIComponent(req.Records[0].s3.object.key.replace(/\+/g, ' '));
+  // const source_s3_bucket = req.Records[0].s3.bucket.name;
   const fileName = path.basename(fileNamePath);
 
   let outputFileName = 'converted-'+fileName
@@ -49,7 +51,7 @@ const convert = (req, callback) => {
   s3.getObject(inputS3params, (err, data) => {
       if (err) {
           console.log(err);
-          const message = `Error getting object ${inputS3params.key} from bucket ${inputS3params.bucket}. Make sure they exist and your bucket is in the same region as this function.`;
+          const message = `Error getting object ${inputS3params.Key} from bucket ${inputS3params.Bucket}. Make sure they exist and your bucket is in the same region as this function.`;
           console.log(message);
            callback(message);
       } else {
@@ -75,7 +77,7 @@ const convert = (req, callback) => {
                     outputS3params.Key = fileNamePath
                     outputS3params.Body = fs.readFileSync(outputFile)
                   }
-
+                  console.log(outputS3params);
                   s3.putObject(outputS3params , function(err, data) {
                       try {
                           fs.unlinkSync(inputFile);
@@ -85,7 +87,7 @@ const convert = (req, callback) => {
                       }
                       if (err) {
                           console.log(err);
-                          const message = `Error uploading object ${outputS3params.key} from bucket ${outputS3params.bucket}. Make sure they exist and your bucket is in the same region as this function.`;
+                          const message = `Error uploading object ${outputS3params.Key} to the bucket ${outputS3params.Bucket}. Make sure they exist and your bucket is in the same region as this function.`;
                           console.log(message);
                            callback(message);
                       } else {
@@ -104,3 +106,9 @@ exports.handler = (event, context, callback) => {
     const req = event;
     convert(req, callback);
 };
+
+const callback = function(data)  {
+    console.log(data);
+};
+
+convert(null, callback);
