@@ -10,8 +10,10 @@ const s3 = new aws.S3({ apiVersion: '2006-03-01' });
 
 
 const convert = (req, callback) => {
-  const fileName = decodeURIComponent(req.Records[0].s3.object.key.replace(/\+/g, ' '));
+  const fileNamePath = decodeURIComponent(req.Records[0].s3.object.key.replace(/\+/g, ' '));
   const source_s3_bucket = req.Records[0].s3.bucket.name;
+  const fileName = path.basename(fileNamePath);
+
   let outputFileName = 'converted-'+fileName
   let customArgs = null
   let customPngArgs = ['-strip']
@@ -24,14 +26,14 @@ const convert = (req, callback) => {
   }else if( ext == '.jpg' || ext == '.JPG' ||  ext == '.jpeg' || ext == '.JPEG'){
     customArgs = customJpgArgs
   }else{
-    const message = `Non supported file ${fileName}`;
+    const message = `Non supported file ${fileNamePath}`;
     console.log(message);
     callback(message);
   }
 
   const inputS3params = {
       Bucket: source_s3_bucket,
-      Key: fileName,
+      Key: fileNamePath,
   };
   const outputS3params = {
       Bucket: process.env.DEST_S3_BUCKET,
@@ -65,12 +67,12 @@ const convert = (req, callback) => {
 
                   if (inputFileSizeInBytes <= outputFileSizeInBytes){
                     console.log("Converted file is greater than the original....");
-                    outputS3params.Key = fileName
+                    outputS3params.Key = fileNamePath
                     outputS3params.Body = data.Body
 
                   }else{
                     console.log("Converted file is smaller than the original....");
-                    outputS3params.Key = fileName
+                    outputS3params.Key = fileNamePath
                     outputS3params.Body = fs.readFileSync(outputFile)
                   }
 
@@ -102,4 +104,3 @@ exports.handler = (event, context, callback) => {
     const req = event;
     convert(req, callback);
 };
-
